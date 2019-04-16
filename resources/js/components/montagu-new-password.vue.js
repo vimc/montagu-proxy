@@ -1,10 +1,12 @@
-Vue = typeof(Vue) === 'undefined' ? require("vue/dist/vue.js") : Vue;
+import {setPassword} from "../montagu-password.js";
+import {decodeToken, tokenHasNotExpired, paramFromQueryString} from "../montagu-utils.js";
 
-const MontaguNewPasswordComponent =  Vue.extend( {
-    props: ['utils', 'passwordApi', 'loginLogic'],
+let Vue = typeof(Vue) === 'undefined' ? require("vue/dist/vue.js") : Vue;
+
+const MontaguNewPasswordComponent =  Vue.extend({
     data: function() {
-        const token = this.utils.paramFromQueryString(location.search, "token");
-        const tokenIsValid = this.loginLogic.tokenHasNotExpired(this.loginLogic.decodeToken(token));
+        const token = paramFromQueryString(location.search, "token");
+        const tokenIsValid = tokenHasNotExpired(decodeToken(token));
         return {
             password: "",
             token: token,
@@ -15,7 +17,7 @@ const MontaguNewPasswordComponent =  Vue.extend( {
     },
     methods: {
         updatePassword: function() {
-            this.passwordApi.setPassword(this.password, this.token).then(
+            setPassword(this.password, this.token).then(
                 () => {
                     this.setPasswordSuccess= true;
                 },

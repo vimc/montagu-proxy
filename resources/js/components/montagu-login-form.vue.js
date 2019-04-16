@@ -22,3 +22,4 @@ const MontaguLoginForm =  {
 }
 
 if (typeof module !== 'undefined') module.exports = MontaguLoginForm;
+export default MontaguLoginForm

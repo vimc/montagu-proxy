@@ -1,17 +1,19 @@
-Vue = typeof(Vue) === 'undefined' ? require("vue/dist/vue.js") : Vue;
+import {paramFromQueryString} from "../montagu-utils.js";
+import {requestResetLink} from "../montagu-password.js";
 
-const MontaguResetPasswordComponent = Vue.extend( {
-    props: ['utils', 'passwordApi'],
+let Vue = typeof(Vue) === 'undefined' ? require("vue/dist/vue.js") : Vue;
+
+const MontaguResetPasswordComponent = Vue.extend({
     data: function() {
         return {
-            email: this.utils.paramFromQueryString(location.search, "email"),
+            email: paramFromQueryString(location.search, "email"),
             showAcknowledgement: false,
             resetPasswordError: ""
         }
     },
     methods: {
         requestResetLink: function() {
-            this.passwordApi.requestResetLink(this.email).then(
+            requestResetLink(this.email).then(
                 () => {
                     this.showAcknowledgement = true;
                     this.resetPasswordError = "";

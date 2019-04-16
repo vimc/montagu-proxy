@@ -1,93 +1,54 @@
-//Logic class for logging in and out of Montagu
-class MontaguLogin {
+import {getUserDetails, makeLoginRequest, makeLogoutRequest, setCookies} from "./montagu-auth.js";
+import {decodeToken} from "./montagu-utils";
 
-    constructor(montaguAuth, localStorage, jwt_decode, pako) {
-        this.TOKEN_KEY = "accessToken";
-        this.montaguAuth = montaguAuth;
-        this.localStorage = localStorage;
-        this.jwt_decode = jwt_decode;
-        this.pako = pako;
-    }
+const TOKEN_KEY = "accessToken";
 
-    initialise() {
-        let montaguUserName = '';
-
-        //Check if we are logged in
-        const token = this.readTokenFromLocalStorage();
-
-        if (token && token !== "null") {
-            const decodedToken = this.decodeToken(token);
-
-            //don't allow login if token expiry is past
-            if (this.tokenHasNotExpired(decodedToken)) {
-                montaguUserName = decodedToken.sub;
-            }
+export const getUserName = () => {
+    return getUserDetails().then((result) => {
+        if (result.status === "success") {
+            return result.data.username
         }
-
-        return montaguUserName;
-    }
-
-    tokenHasNotExpired(decodedToken) {
-       const expiry = decodedToken.exp;
-        const now = new Date().getTime() / 1000; //token exp doesn't include milliseconds
-        return expiry > now
-    }
-
-    writeTokenToLocalStorage(token) {
-        this.localStorage.setItem(this.TOKEN_KEY, token);
-    }
-
-    readTokenFromLocalStorage() {
-        return this.localStorage.getItem(this.TOKEN_KEY);
-    }
-
-    login(email, password) {
-        return this.montaguAuth.login(email, password)
-            .then((data) => this.montaguLoginSuccess(data))
-            .catch((jqXHR) => {
-                throw MontaguLogin.montaguApiError(jqXHR)
-            })
-    }
-
-    montaguLoginSuccess(data) {
-        const token = data.access_token;
-
-        return this.montaguAuth.setCookies(token).then(
-            () => {
-                const decodedToken = this.decodeToken(token);
-                const montaguUserName = decodedToken.sub;
-
-                this.writeTokenToLocalStorage(token);
-                return montaguUserName;
-            }
-        );
-    }
-
-    logout() {
-        this.writeTokenToLocalStorage('');
-        return this.montaguAuth.logout()
-            .catch((jqXHR) => {
-                throw MontaguLogin.montaguApiError(jqXHR)
-            })
-    }
-
-    decodeToken(token) {
-        const decoded = atob(token.replace(/_/g, '/').replace(/-/g, '+'));
-        const inflated = this.pako.inflate(decoded, {to: 'string'});
-
-        return this.jwt_decode(inflated);
-    }
-
-    static montaguApiError(jqXHR) {
-        let errorText;
-        if (jqXHR && jqXHR.status === 401) {
-            errorText = "Your email address or password is incorrect.";
-        } else {
-            errorText = "An error occurred.";
+        else {
+            return ''
         }
-        return errorText;
+    }).catch(() => {
+        // we're not logged in
+        return ''
+    });
+};
+
+export const login = (email, password) => {
+    return makeLoginRequest(email, password)
+        .then((data) => montaguLoginSuccess(data))
+        .catch((jqXHR) => {
+            throw montaguApiError(jqXHR)
+        })
+};
+
+const montaguLoginSuccess = (data) => {
+    const token = data.access_token;
+    return setCookies(token).then(() => {
+        const decodedToken = decodeToken(token);
+        return decodedToken.sub;
+    })
+};
+
+export const logout = () => {
+    // TODO remove once local storage usage in webapps is deprecated
+    // https://vimc.myjetbrains.com/youtrack/issue/VIMC-2865
+    window.localStorage.setItem(TOKEN_KEY, '');
+    return makeLogoutRequest()
+        .catch((jqXHR) => {
+            throw montaguApiError(jqXHR)
+        })
+};
+
+const montaguApiError = (jqXHR) => {
+    let errorText;
+    if (jqXHR && jqXHR.status === 401) {
+        errorText = "Your email address or password is incorrect.";
+    } else {
+        errorText = "An error occurred.";
     }
-
-}
-
-if (typeof module !== 'undefined') module.exports = MontaguLogin;
+    return errorText;
+};

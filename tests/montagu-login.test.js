@@ -1,139 +1,103 @@
-const MontaguLogin = require("../resources/js/montagu-login.js");
-
 const now = new Date();
 
-function getEncodedToken(username, expiry){
+afterEach(() => {
+    jest.resetModules();
+});
+
+function getEncodedToken(username, expiry) {
     const timestamp = Math.round(expiry.getTime() / 1000);
     const token = JSON.stringify({sub: username, exp: timestamp});
     return btoa(token);
 }
 
-test('can create MontaguLogin', () => {
-    const sut = new MontaguLogin();
+test('can get username from user details', (done) => {
+
+    jest.mock("../resources/js/montagu-auth", () => ({
+        getUserDetails: () => new Promise((resolve) =>
+            resolve({data: {username: "test.user"}, status: "success"}))
+    }));
+
+    const {getUserName} = require("../resources/js/montagu-login");
+
+    getUserName().then((result) => {
+        expect(result).toBe('test.user');
+        done();
+    });
+
 });
 
-test('can write token to local storage', () => {
-    const mockSetItem = jest.fn();
-    const sut = new MontaguLogin(null, {setItem: mockSetItem});
+test('returns empty username if user details are not returned', (done) => {
 
-    sut.writeTokenToLocalStorage("testtoken");
+    jest.mock("../resources/js/montagu-auth", () => ({
+        getUserDetails: () => new Promise((resolve) =>
+            resolve({data: null, status: "failure"}))
+    }));
 
-    expect(mockSetItem.mock.calls.length).toBe(1);
-    expect(mockSetItem.mock.calls[0][0]).toBe("accessToken");
-    expect(mockSetItem.mock.calls[0][1]).toBe("testtoken");
+    const {getUserName} = require("../resources/js/montagu-login");
+
+    getUserName().then((result) => {
+        expect(result).toBe('');
+        done();
+    });
 });
 
-test('can read token to local storage', () => {
-    const mockGetItem = jest.fn((x) => "testtoken");
-    const sut = new MontaguLogin(null, {getItem: mockGetItem});
+test('returns empty username if user details return a 401', (done) => {
 
-    const result = sut.readTokenFromLocalStorage();
+    jest.mock("../resources/js/montagu-auth", () => ({
+        getUserDetails: () => new Promise((resolve, reject) =>
+            reject())
+    }));
 
-    expect(result).toBe("testtoken");
-    expect(mockGetItem.mock.calls.length).toBe(1);
-    expect(mockGetItem.mock.calls[0][0]).toBe("accessToken");
-});
+    const {getUserName} = require("../resources/js/montagu-login");
+    const result = getUserName();
 
-test('can decode jwt token', () => {
-    const toDecode = "test_-";
-    const mockInflate = jest.fn(x => x + "inflated");
-    const mockDecode = jest.fn(x => x + "decoded");
-
-    const sut = new MontaguLogin(null, null, mockDecode, {inflate: mockInflate});
-    const result = sut.decodeToken(toDecode);
-
-    const expected = atob("test/+") +"inflateddecoded";
-    expect(result).toBe(expected);
-});
-
-test('can initialise, no saved token', () => {
-    const mockGetItem = jest.fn(() => '');
-
-    const sut = new MontaguLogin(null, {getItem: mockGetItem}, null, null);
-    const result = sut.initialise();
-
-    expect(result).toBe('');
-});
-
-test('can initialise, saved token has not expired', () => {
-
-    const token = getEncodedToken("testuser", new Date(now.getTime() + (60*60*1000)));
-    const mockGetItem = jest.fn(() => token);
-    const mockInflate = jest.fn(x => x);
-    const mockDecode = jest.fn(x => JSON.parse(x));
-
-    const sut = new MontaguLogin(null,
-        {getItem: mockGetItem}, //mock local storage
-        mockDecode, //mock jwt_decode
-        {inflate: mockInflate} //mock pako
-    );
-    const result = sut.initialise();
-
-    expect(result).toBe('testuser');
-});
-
-
-test('can initialise, saved token has expired', () => {
-
-    const token = getEncodedToken("testuser", new Date(now.getTime() - (60*60*1000)));
-    const mockGetItem = jest.fn(() => token);
-    const mockInflate = jest.fn(x => x);
-    const mockDecode = jest.fn(x => JSON.parse(x));
-
-    const sut = new MontaguLogin(null,
-        {getItem: mockGetItem}, //mock local storage
-        mockDecode, //mock jwt_decode
-        {inflate: mockInflate} //mock pako
-    );
-    const result = sut.initialise();
-
-    expect(result).toBe('');
+    getUserName().then((result) => {
+        expect(result).toBe('');
+        done();
+    });
 });
 
 test('can login', (done) => {
-    const encodedToken = getEncodedToken("test user name", new Date(now.getTime() + (60*60*1000)));
-    const mockSetItem = jest.fn();
-    const mockInflate = jest.fn(x => x);
-    const mockDecode = jest.fn(x => JSON.parse(x));
-    const mockLogin = jest.fn(x => new Promise((resolve, reject) => {
-        resolve({"access_token": encodedToken});
+    const mockDecode = jest.fn(x => ({sub: "test user name"}));
+    const mockLogin = jest.fn(x => new Promise((resolve) => {
+        resolve({"access_token": "TOKEN"});
     }));
-    const mockSetCookies = jest.fn(x => new Promise((resolve, reject) => {
+    const mockSetCookies = jest.fn(x => new Promise((resolve) => {
         resolve();
     }));
 
-    const sut = new MontaguLogin({login: mockLogin, setCookies: mockSetCookies}, //mock auth
-        {setItem: mockSetItem}, //mock local storage
-        mockDecode, //mock jwt_decode
-        {inflate: mockInflate} //mock pako
-    );
+    jest.mock("../resources/js/montagu-auth", () => ({
+        makeLoginRequest: mockLogin,
+        setCookies: mockSetCookies
+    }));
+
+    jest.mock("../resources/js/montagu-utils", () => ({
+        decodeToken: mockDecode
+    }));
+
+    const {login} = require("../resources/js/montagu-login");
 
     //This returns a promise - invoking the promise will call auth login methods via further promises, here mocked to
     //resolve immediately
-    sut.login("test email", "test password").then(
+    login("test email", "test password").then(
         (result) => {
             expect(result).toBe("test user name");
-            //Expected mocks were called
-            expect(mockInflate.mock.calls.length).toBe(1);
             expect(mockDecode.mock.calls.length).toBe(1);
 
             expect(mockLogin.mock.calls.length).toBe(1);
             expect(mockSetCookies.mock.calls.length).toBe(1);
 
-            //expect token written to local storage
-            expect(mockSetItem.mock.calls.length).toBe(1);
-            expect(mockSetItem.mock.calls[0][0]).toBe("accessToken");
-            expect(mockSetItem.mock.calls[0][1]).toBe(encodedToken);
             done();
-         },
-        (error) => { done.fail(`login failed: ${error}`); }
+        },
+        (error) => {
+            done.fail(`login failed: ${error}`);
+        }
     );
 
 });
 
 test('returns error message when authentication fails', (done) => {
 
-    const mockSetItem = jest.fn();
     const mockInflate = jest.fn();
     const mockDecode = jest.fn();
     const mockLogin = jest.fn(x => new Promise((resolve, reject) => {
@@ -143,15 +107,20 @@ test('returns error message when authentication fails', (done) => {
         resolve();
     }));
 
-    const sut = new MontaguLogin({login: mockLogin, setCookies: mockSetCookies}, //mock auth
-        {setItem: mockSetItem}, //mock local storage
-        mockDecode, //mock jwt_decode
-        {inflate: mockInflate} //mock pako
-    );
+    jest.mock("../resources/js/montagu-auth", () => ({
+        makeLoginRequest: mockLogin,
+        setCookies: mockSetCookies
+    }));
+
+    jest.mock("../resources/js/montagu-utils", () => ({
+        decodeToken: mockDecode
+    }));
+
+    const {login} = require("../resources/js/montagu-login");
 
     //This returns a promise - invoking the promise will call auth login methods via further promises, here mocked to
     //resolve immediately
-    sut.login("test email", "test password").then(
+    login("test email", "test password").then(
         (result) => {
             done.fail(`login should have failed`);
         },
@@ -165,9 +134,6 @@ test('returns error message when authentication fails', (done) => {
             expect(mockLogin.mock.calls.length).toBe(1);
             expect(mockSetCookies.mock.calls.length).toBe(0);
 
-            //expect token not written to local storage
-            expect(mockSetItem.mock.calls.length).toBe(0);
-
             done();
         }
     );
@@ -176,26 +142,28 @@ test('returns error message when authentication fails', (done) => {
 
 test('returns error message when setCookies fails', (done) => {
 
-    const encodedToken = getEncodedToken("test user name", new Date(now.getTime() + (60*60*1000)));
-    const mockSetItem = jest.fn();
-    const mockInflate = jest.fn(x => x);
-    const mockDecode = jest.fn(x => JSON.parse(x));
+    const mockDecode = jest.fn(x => ({sub: "test user name"}));
     const mockLogin = jest.fn(x => new Promise((resolve, reject) => {
-        resolve({"access_token": encodedToken});
+        resolve({"access_token": "TOKEN"});
     }));
     const mockSetCookies = jest.fn(x => new Promise((resolve, reject) => {
         reject({status: 502})
     }));
 
-    const sut = new MontaguLogin({login: mockLogin, setCookies: mockSetCookies}, //mock auth
-        {setItem: mockSetItem}, //mock local storage
-        mockDecode, //mock jwt_decode
-        {inflate: mockInflate} //mock pako
-    );
+    jest.mock("../resources/js/montagu-auth", () => ({
+        makeLoginRequest: mockLogin,
+        setCookies: mockSetCookies
+    }));
+
+    jest.mock("../resources/js/montagu-utils", () => ({
+        decodeToken: mockDecode
+    }));
+
+    const {login} = require("../resources/js/montagu-login");
 
     //This returns a promise - invoking the promise will call auth login methods via further promises, here mocked to
     //resolve immediately
-    sut.login("test email", "test password").then(
+    login("test email", "test password").then(
         (result) => {
             done.fail(`login should have failed`);
         },
@@ -203,14 +171,10 @@ test('returns error message when setCookies fails', (done) => {
             expect(error).toBe("An error occurred.");
 
             //Expected mocks were called or not called
-            expect(mockInflate.mock.calls.length).toBe(0);
             expect(mockDecode.mock.calls.length).toBe(0);
 
             expect(mockLogin.mock.calls.length).toBe(1);
             expect(mockSetCookies.mock.calls.length).toBe(1);
-
-            //expect token not written to local storage
-            expect(mockSetItem.mock.calls.length).toBe(0);
 
             done();
         }
@@ -219,30 +183,33 @@ test('returns error message when setCookies fails', (done) => {
 });
 
 test('can logout', (done) => {
-    const mockSetItem = jest.fn();
 
     const mockLogout = jest.fn(x => new Promise((resolve, reject) => {
         resolve();
     }));
 
-    const sut = new MontaguLogin({logout: mockLogout}, //mock auth
-        {setItem: mockSetItem} //mock local storage
-    );
+    jest.mock("../resources/js/montagu-auth", () => ({
+        makeLogoutRequest: mockLogout
+    }));
+
+    const {logout} = require("../resources/js/montagu-login");
 
     //This returns a promise - invoking the promise will call auth login methods via further promises, here mocked to
     //resolve immediately
-    sut.logout().then(
+    logout().then(
         () => {
             //Expected mocks were called
             expect(mockLogout.mock.calls.length).toBe(1);
 
             //expect empty token written to local storage
-            expect(mockSetItem.mock.calls.length).toBe(1);
-            expect(mockSetItem.mock.calls[0][0]).toBe("accessToken");
-            expect(mockSetItem.mock.calls[0][1]).toBe('');
+            // expect(mockSetItem.mock.calls.length).toBe(1);
+            // expect(mockSetItem.mock.calls[0][0]).toBe("accessToken");
+            // expect(mockSetItem.mock.calls[0][1]).toBe('');
             done();
         },
-        (error) => { done.fail(`logout failed: ${error}`); }
+        (error) => {
+            done.fail(`logout failed: ${error}`);
+        }
     );
 
 });

@@ -35,3 +35,14 @@ test('can retrieve query parameter', () => {
     expect(result).toBe("h@llo&goodbye/");
 
 });
+
+test('can decode jwt token', () => {
+    const toDecode = "test_-";
+    const mockInflate = jest.fn(x => x + "inflated");
+    const mockDecode = jest.fn(x => x + "decoded");
+
+    const result = MontaguUtils.decodeToken(toDecode);
+
+    const expected = atob("test/+") + "inflateddecoded";
+    expect(result).toBe(expected);
+});

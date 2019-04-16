@@ -6,3 +6,4 @@ const MontaguLoginStatus =  {
 }
 
 if (typeof module !== 'undefined') module.exports = MontaguLoginStatus;
+export default MontaguLoginStatus

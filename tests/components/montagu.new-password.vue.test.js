@@ -1,17 +1,23 @@
+import {paramFromQueryString} from "../../resources/js/montagu-utils";
+
 const VueTestUtils = require("@vue/test-utils");
 const MontaguNewPassword = require("../../resources/js/components/montagu-new-password.vue.js");
 
+jest.mock("../../resources/js/montagu-password.js", () => ({
+    setPassword: jest.fn(() => new Promise((resolve, reject) =>
+        reject())
+    )
+}));
+
+jest.mock("../../resources/js/montagu-utils.js", () => ({
+    tokenHasNotExpired: jest.fn(() => true),
+    decodeToken: jest.fn(x => x),
+    paramFromQueryString: jest.fn(() => "token")
+}));
 
 test('renders correctly when password has not been set', () => {
-    const mockUtils = { paramFromQueryString: jest.fn(() => "token") }
-    const mockPasswordApi = {};
-    const mockLoginLogic  = {
-        tokenHasNotExpired: jest.fn(() => true),
-        decodeToken: jest.fn(x => x)
-    };
 
-    const wrapper = VueTestUtils.shallowMount(MontaguNewPassword,
-        {propsData: {utils: mockUtils, passwordApi: mockPasswordApi, loginLogic: mockLoginLogic }});
+    const wrapper = VueTestUtils.shallowMount(MontaguNewPassword);
 
     expect(wrapper.find('#password-input').element.value).toBe('');
     expect(wrapper.find('#update-button').text()).toBe('Update');
@@ -32,8 +38,7 @@ test('renders correctly when password has been set successfuly', (done) => {
         decodeToken: jest.fn(x => x)
     };
 
-    const wrapper = VueTestUtils.shallowMount(MontaguNewPassword,
-        {propsData: {utils: mockUtils, passwordApi: mockPasswordApi, loginLogic: mockLoginLogic }});
+    const wrapper = VueTestUtils.shallowMount(MontaguNewPassword);
 
     //Fill in a new password
     const input = wrapper.find('#password-input');

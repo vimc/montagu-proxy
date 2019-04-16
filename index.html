@@ -2,28 +2,29 @@
 <html>
 <head>
     <title>Vaccine Impact Modelling Consortium - Montagu</title>
-    <link rel="stylesheet" href="resources/css/third_party/bootstrap.min.css" />
-    <link rel="stylesheet" href="resources/css/montagu.css" />
+    <link rel="stylesheet" href="resources/css/third_party/bootstrap.min.css"/>
+    <link rel="stylesheet" href="resources/css/montagu.css"/>
 
     <script src="resources/js/third_party/jquery.min.js"></script>
     <script src="resources/js/third_party/jwt-decode.min.js"></script>
     <script src="resources/js/third_party/vue.min.js"></script>
     <script src="resources/js/third_party/pako.min.js"></script>
 
-    <script src="resources/js/montagu-login.js"></script>
-    <script src="resources/js/montagu-auth.js"></script>
-    <script src="resources/js/montagu-utils.js"></script>
-    <script src="resources/js/components/montagu-login-status.vue.js"></script>
-    <script src="resources/js/components/montagu-login-form.vue.js"></script>
+    <script type="module" src="resources/js/montagu-login.js"></script>
+    <script type="module" src="resources/js/montagu-auth.js"></script>
+    <script type="module" src="resources/js/montagu-utils.js"></script>
+    <script type="module" src="resources/js/components/montagu-login-status.vue.js"></script>
+    <script type="module" src="resources/js/components/montagu-login-form.vue.js"></script>
 </head>
 <body>
 <div id="app">
     <header class="header">
         <a href="https://vaccineimpact.org">
-                <img class="pl-md-1 logo" src="./resources/logo.png" alt="Vaccine Impact Modelling Consortium" />
+            <img class="pl-md-1 logo" src="./resources/logo.png" alt="Vaccine Impact Modelling Consortium"/>
         </a>
         <div class="siteTitle">Montagu</div>
-        <montagu-login-status v-bind:username="username" v-on:logout="logout" class="login-status"></montagu-login-status>
+        <montagu-login-status v-bind:username="username" v-on:logout="logout"
+                              class="login-status"></montagu-login-status>
     </header>
     <div id="content" class="container mt-3">
         <p>
@@ -40,7 +41,7 @@
         </p>
         <montagu-login-form v-bind:username="username" v-bind:login-error="loginError"
                             v-bind:redirect-message="redirectMessage"
-                              v-on:login="login" class="login-form"></montagu-login-form>
+                            v-on:login="login" class="login-form"></montagu-login-form>
         <div class="portals">
             <h1>Portals</h1>
             <table>
@@ -80,56 +81,5 @@
     </div>
 </div>
 </body>
-<script>
-    const utils = MontaguUtils;
-    const auth = new MontaguAuth(utils.getApiRoot());
-    const logic = new MontaguLogin(
-                        auth,
-                        window.localStorage,
-                        jwt_decode,
-                        pako
-                );
-
-
-    new Vue({
-        el: "#app",
-        data: {
-            username: logic.initialise(),
-            loginError: "",
-            redirectMessage: ""
-        },
-        methods: {
-            logout: function() {
-                const data = this;
-                logic.logout().then(
-                    () => {
-                        data.username = '';
-                        data.loginError = '';
-                    },
-                    (error) => { data.username = ''; data.loginError = error }
-                );
-            },
-            login: function(email, password) {
-                const data = this;
-                logic.login(email, password).then(
-                    (result) => {
-                        data.username = result;
-                        data.loginError = '';
-                        const redirectLocation = utils.paramFromQueryString(location.search, "redirectTo");
-                        if (redirectLocation) {
-                            data.redirectMessage = `Redirecting you back to ${redirectLocation}.
-                            If you are not automatically redirected in a few seconds please click <a href="${redirectLocation}">here</a>`;
-                            window.location.href=redirectLocation
-                        }
-                    },
-                    (error) => { data.username = ''; data.loginError = error; }
-                );
-            }
-        },
-        components: {
-            'montagu-login-status': MontaguLoginStatus,
-            'montagu-login-form': MontaguLoginForm
-        }
-    });
-</script>
+<script type="module" src="resources/js/login.js"></script>
 </html>

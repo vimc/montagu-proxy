@@ -1,27 +1,33 @@
-class MontaguUtils {
+export const paramFromQueryString = (queryString, param) => {
 
-    static getApiRoot() {
-        return "/api/v1/";
-    }
+    if (!queryString) return null;
 
-    static paramFromQueryString(queryString, param) {
+    if (queryString[0] === "?") queryString = queryString.substring(1);
 
-        if (!queryString) return null;
+    if (!queryString) return null;
 
-        if (queryString[0] === "?") queryString = queryString.substring(1);
+    return queryString
+        .split('&')
+        .map(function (keyValueString) {
+            return keyValueString.split('=')
+        })
+        .reduce(function (urlParams, [key, value]) {
+            urlParams[key] = decodeURIComponent(value);
+            return urlParams;
+        }, {})[param];
+};
 
-        if (!queryString) return null;
+export const tokenHasNotExpired = (decodedToken) => {
+    const expiry = decodedToken.exp;
+    const now = new Date().getTime() / 1000; //token exp doesn't include milliseconds
+    return expiry > now
+};
 
-        return queryString
-            .split('&')
-            .map(function (keyValueString) {
-                return keyValueString.split('=')
-            })
-            .reduce(function (urlParams, [key, value]) {
-                urlParams[key] = decodeURIComponent(value);
-                return urlParams;
-            }, {})[param];
-    }
-}
+export const decodeToken = (token) => {
+    const decoded = atob(token.replace(/_/g, '/').replace(/-/g, '+'));
+    const inflated = pako.inflate(decoded, {to: 'string'});
 
-if (typeof module !== 'undefined') module.exports = MontaguUtils;
+    return this.jwt_decode(inflated);
+};
+
+export const apiRoot = "/api/v1/";

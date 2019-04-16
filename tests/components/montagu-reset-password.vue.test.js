@@ -1,15 +1,22 @@
+import * as montaguAuth from "../../resources/js/montagu-auth";
+
 const VueTestUtils = require("@vue/test-utils");
+import * as passwordApi from "../../resources/js/montagu-password"
+import * as utils from "../../resources/js/montagu-utils"
 
 const MontaguResetPassword = require("../../resources/js/components/montagu-reset-password.vue.js");
 
+let mockPasswordApi = jest.mock(passwordApi);
+let mockUtils = jest.mock(utils);
+
+afterEach(() => {
+    mockPasswordApi.mockReset();
+    mockUtils.mockReset();
+});
 
 test('renders correctly not showing acknowledgement', () => {
 
-    const mockUtils = { paramFromQueryString: jest.fn(() => "test@example.com") }
-    const mockPasswordApi = {};
-
-    const wrapper = VueTestUtils.shallowMount(MontaguResetPassword,
-        {propsData: {utils: mockUtils, passwordApi: mockPasswordApi}});
+    const wrapper = VueTestUtils.shallowMount(MontaguResetPassword);
 
     expect(wrapper.find('#email-input').element.value).toBe('test@example.com');
     expect(wrapper.find('#request-button').text()).toBe('Request password reset email');
@@ -19,13 +26,22 @@ test('renders correctly not showing acknowledgement', () => {
 });
 
 test('renders correctly showing acknowledgement', (done) => {
-    const mockUtils = { paramFromQueryString: jest.fn(() => "test@example.com") }
-    const mockPasswordApi = {requestResetLink: jest.fn(x => new Promise(
-        function (resolve, reject){ resolve(); }
-        ))};
+    const mockParamFromQueryString = jest.fn(() => "test@example.com");
+    const mockRequestResetLink = jest.fn(x => new Promise(
+        function (resolve, reject) {
+            resolve();
+        }
+    ));
 
-    const wrapper = VueTestUtils.shallowMount(MontaguResetPassword,
-        {propsData: {utils: mockUtils, passwordApi: mockPasswordApi}});
+    mockPasswordApi = jest.mock(passwordApi, () => ({
+        requestResetLink: mockRequestResetLink
+    }));
+
+    mockUtils = jest.mock(utils, () => ({
+        paramFromQueryString: mockParamFromQueryString
+    }));
+
+    const wrapper = VueTestUtils.shallowMount(MontaguResetPassword);
 
     //Mock press submit button and success response
     wrapper.find("form").trigger("submit");
@@ -34,7 +50,7 @@ test('renders correctly showing acknowledgement', (done) => {
     expect(mockPasswordApi.requestResetLink.mock.calls.length).toBe(1);
     expect(mockPasswordApi.requestResetLink.mock.calls[0][0]).toBe("test@example.com");
 
-    wrapper.vm.$nextTick( () => {
+    wrapper.vm.$nextTick(() => {
 
         expect(wrapper.find('#email-input').element.value).toBe('test@example.com');
         expect(wrapper.find('#request-button').text()).toBe('Request password reset email');
@@ -48,18 +64,26 @@ test('renders correctly showing acknowledgement', (done) => {
 });
 
 test('renders correctly showing reset password error', (done) => {
-    const mockUtils = { paramFromQueryString: jest.fn(() => "test@example.com") }
-    const mockPasswordApi = {requestResetLink: jest.fn(x => new Promise(
-            function (resolve, reject){ reject(); }
-        ))};
+    const mockParamFromQueryString = jest.fn(() => "test@example.com");
+    const mockRequestResetLink = jest.fn(x => new Promise(
+            function (resolve, reject) {
+                reject();
+            }
+        ));
+    mockPasswordApi = jest.mock(passwordApi, () => ({
+        requestResetLink: mockRequestResetLink
+    }));
 
-    const wrapper = VueTestUtils.shallowMount(MontaguResetPassword,
-        {propsData: {utils: mockUtils, passwordApi: mockPasswordApi}});
+    mockUtils = jest.mock(utils, () => ({
+        paramFromQueryString: mockParamFromQueryString
+    }));
+
+    const wrapper = VueTestUtils.shallowMount(MontaguResetPassword);
 
     //Mock press submit button and success response
     wrapper.find("form").trigger("submit");
 
-    wrapper.vm.$nextTick( () => {
+    wrapper.vm.$nextTick(() => {
 
         expect(wrapper.find('#email-input').element.value).toBe('test@example.com');
         expect(wrapper.find('#request-button').text()).toBe('Request password reset email');
