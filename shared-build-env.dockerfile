@@ -1,4 +1,4 @@
-FROM vimc/node-docker:master
+FROM vimc/node-docker:mrc-3682
 
 ARG MONTAGU_GIT_ID="UNKNOWN"
 ARG MONTAGU_GIT_BRANCH="UNKNOWN"
