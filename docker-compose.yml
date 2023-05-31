@@ -17,26 +17,11 @@ services:
     volumes:
      - token_key_volume:/etc/montagu/api/token_key
      - ${PWD}/montagu_emails:/tmp/montagu_emails
-  orderly_web_web:
-    image: ${ORG}/orderly-web:master
-    networks:
-     - proxy
-    depends_on:
-      - api
-    volumes:
-     - orderly_volume:/orderly
   db:
     image: ${ORG}/montagu-db:master
     ports:
      - "5432:5432"
     command: /etc/montagu/postgresql.test.conf
-    networks:
-     - proxy
-  orderly:
-    image: ${ORG}/orderly.server:master
-    volumes:
-     - orderly_volume:/orderly
-    command: --port 8321 --go-signal /orderly_go /orderly
     networks:
      - proxy
   contrib:
@@ -62,7 +47,6 @@ services:
     - static_volume:/www
     - static_logs:/var/log/caddy
 volumes:
-  orderly_volume:
   template_volume:
   guidance_volume:
   static_logs:
