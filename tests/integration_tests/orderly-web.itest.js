@@ -36,6 +36,16 @@ test('can access orderly web', async () => {
     expect(await title.getText()).toBe("Reporting portal")
 }, 8000);
 
+test('can access packit', async () => {
+
+    browser.get("https://localhost/packit/");
+
+    await browser.wait(webDriver.until.titleIs("Packit"), 1000);
+
+    const packets = await browser.findElements(webDriver.By.tagName("tr"));
+    expect(packets.length > 1).toBe(true);
+}, 8000);
+
 test('old report page urls are redirected', async () => {
     await browser.get("https://localhost");
     await TestHelper.ensureLoggedIn(browser);

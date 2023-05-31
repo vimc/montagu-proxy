@@ -11,6 +11,7 @@ function cleanup() {
     docker stop montagu-metrics || true
     docker rm montagu-metrics || true
     docker-compose --project-name montagu down || true
+    orderly-web stop $here --force || true
 }
 
 export ORG=vimc

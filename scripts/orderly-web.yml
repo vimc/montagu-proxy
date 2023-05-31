@@ -1,0 +1,73 @@
+## Prefix for container names; we'll use {container_prefix}-(container_name)
+container_prefix: orderly-web
+
+network: montagu_proxy
+
+volumes:
+  orderly: orderly_web_volume
+  documents: orderly_web_documents
+  redis: orderly_web_redis_data
+  outpack: orderly_web_outpack
+
+## Redis configuration
+redis:
+  image:
+    name: redis
+    tag: "5.0"
+  volume: orderly_web_redis_data
+
+## Orderly configuration
+orderly:
+  image:
+    repo: vimc
+    name: orderly.server
+    tag: master
+    worker_name: orderly.server
+  initial:
+    source: clone
+    url: https://github.com/reside-ic/orderly-example
+  workers: 1
+  expose: true
+  env:
+    ORDERLY_API_SERVER_IDENTITY: production
+
+## Api and Website configuration
+web:
+  image:
+    repo: vimc
+    name: orderly-web
+    tag: master
+    migrate: orderlyweb-migrate
+    admin: orderly-web-user-cli
+  url: https://localhost/reports
+  dev_mode: true
+  port: 8888
+  name: Reporting Portal
+  email: admin@example.com
+  auth:
+    fine_grained: true
+    montagu: true
+    montagu_api_url: http://api:8080/v1
+    montagu_url: https://localhost
+    allow_localhost: true
+
+outpack:
+  repo: mrcide
+  server:
+    name: outpack_server
+    tag: main
+  migrate:
+    name: outpack.orderly
+    tag: main
+
+packit:
+  repo: mrcide
+  api:
+    name: packit-api
+    tag: mrc-4255
+  app:
+    name: packit
+    tag: mrc-4261
+  db:
+    name: packit-db
+    tag: main
