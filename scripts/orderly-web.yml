@@ -42,7 +42,7 @@ web:
   url: https://localhost/reports
   dev_mode: true
   port: 8888
-  name: Reporting Portal
+  name: Reporting portal
   email: admin@example.com
   auth:
     fine_grained: true

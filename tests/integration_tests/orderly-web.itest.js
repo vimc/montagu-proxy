@@ -43,7 +43,13 @@ test('can access packit', async () => {
     await browser.wait(webDriver.until.titleIs("Packit"), 1000);
 
     const packets = await browser.findElements(webDriver.By.tagName("tr"));
-    expect(packets.length > 1).toBe(true);
+
+    await browser.wait(() => {
+        return browser.findElements(webDriver.By.tagName("tr")).then((packets) => {
+            return packets.length > 1
+        });
+    });
+
 }, 8000);
 
 test('old report page urls are redirected', async () => {
