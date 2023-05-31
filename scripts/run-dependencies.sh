@@ -53,6 +53,7 @@ $here/cli.sh add "Password Reset Test User" passwordtest.user \
 $here/cli.sh addRole passwordtest.user user
 
 # Start OW
+pip3 install constellation
 pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple orderly-web
 
 orderly-web start $here
