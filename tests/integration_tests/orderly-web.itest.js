@@ -48,7 +48,7 @@ test('can access packit', async () => {
         return browser.findElements(webDriver.By.tagName("tr")).then((packets) => {
             return packets.length > 1
         });
-    });
+    }, 8000);
 
 }, 8000);
 
