@@ -5,6 +5,7 @@ if [ "$#" -eq 1 ]; then
     DEST="$1"
     cp /usr/local/share/ssl/key.pem $DEST
     cp /usr/local/share/ssl/certificate.pem $DEST
+    cp /usr/local/share/ssl/dhparam.pem $DEST
     exit 0
 elif [ "$#" -eq 6 ]; then
     DEST="$1"
