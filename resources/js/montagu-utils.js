@@ -4,6 +4,10 @@ class MontaguUtils {
         return "/api/v1/";
     }
 
+    static getPackitRoot() {
+        return "/packit/";
+    }
+
     static paramFromQueryString(queryString, param) {
 
         if (!queryString) return null;

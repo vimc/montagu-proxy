@@ -1,8 +1,9 @@
 //Logic class for logging in and out of Montagu
 class MontaguLogin {
 
-    constructor(montaguAuth, jwt_decode, pako) {
+    constructor(montaguAuth, packitAuth, jwt_decode, pako) {
         this.montaguAuth = montaguAuth;
+        this.packitAuth = packitAuth;
         this.jwt_decode = jwt_decode;
         this.pako = pako;
     }
@@ -26,12 +27,21 @@ class MontaguLogin {
         return expiry > now
     }
 
-    login(email, password) {
-        return this.montaguAuth.login(email, password)
+    async login(email, password) {
+        const result = await this.montaguAuth.login(email, password)
             .then((data) => this.montaguLoginSuccess(data))
             .catch((jqXHR) => {
                 throw MontaguLogin.montaguApiError(jqXHR)
-            })
+            });
+        // Allow possibility for Montagu login to succeed but Packit login to fail - do
+        // so silently for this POC, but print to console
+        await this.packitAuth.login(email, password)
+            .then((data) => this.packitAuth.saveUser(data))
+            .catch((jqXHR) => {
+                console.log(`Packit login error: ${JSON.stringify(jqXHR)}`);
+            });
+
+        return result;    
     }
 
     montaguLoginSuccess(data) {

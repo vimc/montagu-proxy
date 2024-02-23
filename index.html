@@ -94,8 +94,10 @@
 <script>
     const utils = MontaguUtils;
     const auth = new MontaguAuth(utils.getApiRoot());
+    const packitAuth = new PackitAuth(utils.getPackitRoot(), jwt_decode);
     const logic = new MontaguLogin(
         auth,
+        packitAuth,
         jwt_decode,
         pako
     );
