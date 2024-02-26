@@ -25,6 +25,7 @@ docker cp $here/orderlywebconfig.properties montagu_orderly_web_web_1:/etc/order
 docker exec montagu_orderly_web_web_1 touch /etc/orderly/web/go_signal
 docker exec montagu_orderly_web_web_1 touch /etc/orderly/web/go_signal
 docker exec montagu_orderly_1 touch /orderly_go
+docker cp $here/packitconfig.properties montagu_packit_api_1:/etc/packit/config.properties
 
 # Wait for the database
 docker exec montagu_db_1 montagu-wait.sh

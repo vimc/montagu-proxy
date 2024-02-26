@@ -25,6 +25,14 @@ services:
       - api
     volumes:
      - orderly_volume:/orderly
+  packit:
+    image: mrcide/packit:main
+    networks:
+      - proxy
+  packit_api:
+    image: mrcide/packit-api:main
+    networks:
+      - proxy
   db:
     image: ${ORG}/montagu-db:master
     ports:
