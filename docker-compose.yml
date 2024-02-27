@@ -33,6 +33,14 @@ services:
     image: mrcide/packit-api:mrc-5092
     networks:
       - proxy
+  packit-db:
+    image: mrcide/packit-db:main
+    networks:
+      - proxy
+  outpack_server:
+    image: mrcide/outpack_server:main
+    networks:
+      - proxy
   db:
     image: ${ORG}/montagu-db:master
     ports:
