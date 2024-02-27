@@ -14,6 +14,7 @@
     <script src="resources/js/montagu-login.js"></script>
     <script src="resources/js/montagu-auth.js"></script>
     <script src="resources/js/montagu-utils.js"></script>
+    <script src="resources/js/packit-auth.js"></script>
     <script src="resources/js/components/montagu-login-status.vue.js"></script>
     <script src="resources/js/components/montagu-login-form.vue.js"></script>
 </head>
@@ -94,7 +95,7 @@
 <script>
     const utils = MontaguUtils;
     const auth = new MontaguAuth(utils.getApiRoot());
-    const packitAuth = new PackitAuth(utils.getPackitRoot(), jwt_decode);
+    const packitAuth = new PackitAuth(utils.getPackitApiRoot(), jwt_decode);
     const logic = new MontaguLogin(
         auth,
         packitAuth,

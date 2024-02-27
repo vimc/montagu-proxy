@@ -17,7 +17,7 @@ services:
     volumes:
      - token_key_volume:/etc/montagu/api/token_key
      - ${PWD}/montagu_emails:/tmp/montagu_emails
-  orderly_web_web:
+  orderly-web-web:
     image: ${ORG}/orderly-web:master
     networks:
      - proxy
@@ -26,11 +26,11 @@ services:
     volumes:
      - orderly_volume:/orderly
   packit:
-    image: mrcide/packit:main
+    image: mrcide/packit:mrc-5092
     networks:
       - proxy
-  packit_api:
-    image: mrcide/packit-api:main
+  packit-api:
+    image: mrcide/packit-api:mrc-5092
     networks:
       - proxy
   db:
