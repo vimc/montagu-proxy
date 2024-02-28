@@ -39,6 +39,8 @@ services:
       - proxy
   outpack_server:
     image: mrcide/outpack_server:main
+    volumes:
+      - ../packit/demos/orderly:/outpack # This requires packit repo to be cloned in same dir as montagu-proxy!
     networks:
       - proxy
   db:
