@@ -4,7 +4,7 @@ class PackitAuth {
         this.jwt_decode = jwt_decode;
     }
 
-    // TODO: We should be using Authorization header here instead, like Montagu does?
+    // TODO: We should be using Authorization header here instead, like Montagu does
     login(email, password) {
         const data = JSON.stringify({email, password});
         const loginUrl = this.packitApiRoot + "auth/login/basic";

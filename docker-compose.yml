@@ -33,6 +33,8 @@ services:
     image: mrcide/packit-api:mrc-5092
     networks:
       - proxy
+    depends_on:
+      - packit-db
   packit-db:
     image: mrcide/packit-db:main
     networks:
@@ -40,7 +42,7 @@ services:
   outpack_server:
     image: mrcide/outpack_server:main
     volumes:
-      - ../packit/demos/orderly:/outpack # This requires packit repo to be cloned in same dir as montagu-proxy!
+      - ./../packit/demos/orderly:/outpack # This requires packit repo to be cloned in same dir as montagu-proxy!
     networks:
       - proxy
   db:

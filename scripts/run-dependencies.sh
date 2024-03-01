@@ -25,11 +25,13 @@ docker cp $here/orderlywebconfig.properties montagu-orderly-web-web-1:/etc/order
 docker exec montagu-orderly-web-web-1 touch /etc/orderly/web/go_signal
 docker exec montagu-orderly-web-web-1 touch /etc/orderly/web/go_signal
 docker exec montagu-orderly-1 touch /orderly_go
-docker cp $here/packitconfig.properties montagu-packit-api-1:/etc/packit/config.properties
 
 # Packit db: Need to give the database a little time to initialise before we can run the migration
 docker exec montagu-packit-db-1 wait-for-db
 docker exec montagu-packit-db-1 psql -U packituser -d packit -a -f /packit-schema/schema.sql
+
+# Initialise packit-api after the db
+docker cp $here/packitconfig.properties montagu-packit-api-1:/etc/packit/config.properties
 
 # TODO: need this on CI?
 sleep 30
