@@ -29,4 +29,9 @@ class PackitAuth {
         };
         localStorage.setItem("user", JSON.stringify(user)); // TODO: don't save prototype!
     }
+
+    deleteUser() {
+        localStorage.removeItem("user");
+    }
+
 }

@@ -56,7 +56,8 @@ class MontaguLogin {
     }
 
     logout() {
-
+        // Logout of packit by deleting token from storage
+        this.packitAuth.deleteUser();
         return this.montaguAuth.logout()
             .catch((jqXHR) => {
                 throw MontaguLogin.montaguApiError(jqXHR)
