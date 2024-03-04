@@ -117,11 +117,18 @@
                 logic.getUserName().then((result) => {
                     data.username = result;
 
-                    const redirectLocation = utils.paramFromQueryString(location.search, "redirectTo");
-                    if (result && redirectLocation) {
-                        data.redirectMessage = `Redirecting you back to ${redirectLocation}.
+                    // If we have loggingOut param set, it means we're logging out from packit
+                    const loggingOut = utils.paramFromQueryString(location.search, "loggingOut");
+                    if (loggingOut) {
+                        this.logout();
+                    } else {
+
+                        const redirectLocation = utils.paramFromQueryString(location.search, "redirectTo");
+                        if (result && redirectLocation) {
+                            data.redirectMessage = `Redirecting you back to ${redirectLocation}.
                             If you are not automatically redirected in a few seconds please click <a href="${redirectLocation}">here</a>`;
-                        window.location.href = redirectLocation
+                            window.location.href = redirectLocation
+                        }
                     }
                 })
             },
