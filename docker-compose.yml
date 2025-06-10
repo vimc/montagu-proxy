@@ -28,11 +28,11 @@ services:
     volumes:
       - orderly_volume:/orderly
   orderly-web-packit:
-    image: mrcide/montagu-packit:main
+    image: mrcide/montagu-packit:mrc-5702-device-flow-front-end
     networks:
       - proxy
   orderly-web-packit-api:
-    image: mrcide/packit-api:main
+    image: mrcide/packit-api:mrc-5702-device-flow
     networks:
       - proxy
     depends_on:
@@ -52,6 +52,7 @@ services:
       - PACKIT_AUTH_ENABLED=true
       - PACKIT_AUTH_GITHUB_ORG=none
       - PACKIT_AUTH_GITHUB_TEAM=none
+      - PACKIT_AUTH_DEVICE_URL=https://localhost/packit/device
   orderly-web-packit-db:
     image: mrcide/packit-db:main
     networks:
