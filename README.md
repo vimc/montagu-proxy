@@ -1,4 +1,7 @@
 # Montagu reverse proxy
+
+**THIS REPO IS NOW ARCHIVED. THE MONTAGU PROXY HAS BEEN MOVED TO [MONTAGU SYSTEM](https://github.com/vimc/montagu-system)**
+
 A reverse proxy for Montagu. This allows us to expose a single port (443) and 
 map different paths to different apps (containers).
 
